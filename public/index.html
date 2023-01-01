@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Socket</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js" integrity="sha384-/KNQL8Nu5gCHLqwqfQjA689Hhoqgi2S84SNUxC3roTe4EhJ9AfLkp8QiQcU8AMzI" crossorigin="anonymous"></script>
+</head>
+<body>
+    <div class="container pt-5">
+        <div class="row">
+            <div class="card shadow col-7">
+                <div class="card-header">
+                    <h3>Group Chat Message Box</h3>
+                </div>
+                <div class="card-body" id="message_container">
+                    <div id="output">
+                        
+                    </div>
+                    <div id="feedback">
+                        
+                    </div>
+                </div>
+            </div>
+            <div class="col-4 offset-1 shadow card">
+                <div class="card-body">
+                    <label for="name" class="form-label">Name</label>
+                    <input type="text" id="name" class="form-control mb-2">
+                    <label for="message" class="form-label">Message</label>
+                    <input type="text" id="message" class="form-control mb-3">
+                    <button class="btn w-100 btn-secondary" id="send_btn">Send</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const socket = io("localhost:4000");
+        let definFunc = (para)=>{
+            return document.getElementById(para)
+        };
+        const output = definFunc('output');
+        const feedback = definFunc('feedback');
+        const name = definFunc('name');
+        const message = definFunc('message');
+        const send_btn = definFunc('send_btn');
+
+        message.addEventListener('keypress',()=>{
+            socket.emit('typing',name.value);
+        })
+
+        send_btn.addEventListener('click',()=>{
+            let data = {
+                name :name.value,
+                message :message.value
+            }
+            socket.emit('chat',data);
+            feedback.innerHTML='';
+        });
+
+        socket.on('chat',(data)=>{
+            output.innerHTML += `<div class="mb-2">
+                            <b><i>${data.name}</i></b>: <span>${data.message}</span>
+                        </div>`;
+            name.value='';
+            message.value='';
+        })
+
+        socket.on('typing',(name)=>{
+            feedback.innerHTML = `<small>${name} is typing.....</small>`;
+            setTimeout(()=>{
+                feedback.innerHTML='';
+            },4000)
+        })
+    </script>
+</body>
+</html>
